@@ -6,7 +6,10 @@ module.exports = (sequelize, Sequelize) => {
         salidaId: {
             type: Sequelize.INTEGER
         },
-        
+        componenteId: {
+            type: Sequelize.INTEGER,
+            allowNull: false
+        },   
     });
     return Movimiento;
 }

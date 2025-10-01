@@ -22,7 +22,15 @@ exports.crearClase = async (req, res) => {
 
 exports.traerClases = async(req, res) => {
     try {
-        const Clases = await db.clase.findAll();
+        const Clases = await db.clase.findAll({
+            include: [
+                {
+                    model: db.tipo,
+                    as: 'tipo'
+                    //attributes: ['nombre'] causa errores es mejor sin esto para el frond
+                }
+            ]
+        });
         res.status(200).send(Clases);
     } catch (error) {
         res.status(500).send({

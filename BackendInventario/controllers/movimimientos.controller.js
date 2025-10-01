@@ -1,11 +1,5 @@
 const db = require('../models')
 
-//TRAER ID DE ENTRA Y SALIDA A MOVIMIENTO
-//exports.llamarEntradaySalida = async (req, res) => {
-
-//};
-
-
 //REGISTRAR ENTRADA
 exports.registrarEntrada = async (req, res) =>{
     try{
@@ -14,6 +8,19 @@ exports.registrarEntrada = async (req, res) =>{
                 message: "El contenido no puede estar vacio!"
             });
         }
+
+//buscar componente
+        const componente = await db.componente.findByPk(req.body.componenteId);
+        if (!componente) {  
+            return res.status(404).send({
+                message: "Componente no encontrado."
+            });
+        }
+//actualizar stock (sumar)
+        componente.cantidad = (componente.cantidad || 0) + Number(req.body.cantidad);  //
+        await componente.save();
+        
+//    
         const registrarEntrada = await db.entrada.create({
                 componenteId: req.body.componenteId,
                 nombre: req.body.nombre,
@@ -52,6 +59,25 @@ exports.registrarSalida = async (req, res) =>{
                 message: "El contenido no puede estar vacio!"
             });
         }
+
+//buscar componente
+        const componente = await db.componente.findByPk(req.body.componenteId);
+        if (!componente) {  
+            return res.status(404).send({message: "Componente no encontrado."});
+        }
+
+//Validar stock
+        if (Number(req.body.cantidad) > componente.cantidad) {
+            return res.status(400).send({
+                message: "No hay suficiente stock para realizar la salida."
+            });
+        }
+
+//actualizar stock (restar)
+        componente.cantidad = componente.cantidad - Number(req.body.cantidad);
+        await componente.save();
+    
+//
         const registrarSalida = await db.salida.create({
                 componenteId: req.body.componenteId,
                 cantidad: req.body.cantidad,
@@ -109,9 +135,26 @@ exports.editarEntrada = async (req, res) => {
                 message: "Registro de entrada no encontrado"
             });
         }
+//funcion para aumentar el stck en componente
+        //buscar componente
+        const componente = await db.componente.findByPk(componenteId);
+        if (!componente) {
+            return res.status(404).send({
+                message: "Componente no encontrado."
+            });
+        }
+        //calcular la diferencia 
+        const cantidadAnterior = Entrada.cantidad;
+        const nuevaCantidad = Number(cantidad);
+        const diferencia = nuevaCantidad - cantidadAnterior;
+        //actualizar stock
+        componente.cantidad = (componente.cantidad || 0) + diferencia;
+        await componente.save();
+///-------------
+        Entrada.cantidad = nuevaCantidad;
         Entrada.componenteId = componenteId || Entrada.componenteId;
         Entrada.nombre = nombre || Entrada.nombre;
-        Entrada.cantidad = cantidad || Entrada.cantidad;
+        //Entrada.cantidad = cantidad || Entrada.cantidad;
         Entrada.motivo = motivo || Entrada.motivo;
         await Entrada.save();
         res.status(200).send(Entrada);
@@ -135,8 +178,32 @@ exports.editarSalida = async (req, res) => {
                 message: "Registro de salida no encontrado"
             });
         }
+//FUNCION PARA AUMENTAR O RESTAR EL STOCK DEL COMPONENTE
+        //buscar componente
+        const componente = await db.componente.findByPk(componenteId);
+        if (!componente) {
+            return res.status(404).send({
+                message: "Componente no encontrado."
+            });
+        }
+        //calcular diferencia 
+        const cantidadAnterior = Salida.cantidad;
+        const nuevaCantidad = Number(cantidad);
+        const diferencia = nuevaCantidad - cantidadAnterior;
+        //validar el stock si la diferencia es mayor 
+        if (diferencia > 0 && diferencia > componente.cantidad) {
+            return res.status(400).send({
+                message: "No hay suficiente stock para realizar la salida."
+            });
+        }
+        //salida resta stock => se aplica con signo inverso 
+        componente.cantidad = componente.cantidad - diferencia;
+        await componente.save();
+//----------------
+        
+        Salida.cantidad = nuevaCantidad;
         Salida.componenteId = componenteId || Salida.componenteId;
-        Salida.cantidad = cantidad || Salida.cantidad;
+        //Salida.cantidad = cantidad || Salida.cantidad;
         Salida.codigo = codigo || Salida.codigo;
         Salida.motivo = motivo || Salida.motivo;
         Salida.tipodeorden = tipodeorden || Salida.tipodeorden;
@@ -217,5 +284,49 @@ exports.traerSalidas = async (req, res) => {
         res.status(500).send({
             message: error.message || "Ocurrio un error al traer los registros de salida"
         });
+    }
+};
+
+//DETALLE DE ENTRADA
+exports.obtenerEntrada = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const entrada = await db.entrada.findByPk(id, {
+            attributes: ["id", "componenteId", "nombre", "cantidad", "motivo"],
+            include: [
+                { model: db.componente, as: "componente", attributes: ["id", "nombre"]},
+            ]
+            });
+
+        if (!entrada) {
+        return res.status(404).send({ message: "Registro de entrada no encontrado" });
+        }
+
+        res.send(entrada);
+    } catch (error) {
+        res.status(500).send({ message: "Error al obtener registro de entrada" });
+    }
+};
+
+//DETALLE DE SALIDA
+exports.obtenerSalida = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const salida = await db.salida.findByPk(id, {
+            attributes: ["id", "componenteId", "cantidad", "codigo", "motivo", "tipodeorden", "responsableId", "unidadId"],
+            include: [
+                { model: db.componente, as: "componente", attributes: ["nombre"]},
+                { model: db.responsable, as: "responsable", attributes: ["nombre"]},
+                { model: db.unidad, as: "unidad", attributes: ["nombre"]}
+            ]
+            });
+
+        if (!salida) {
+        return res.status(404).send({ message: "Registro de salida no encontrado" });
+        }
+
+        res.send(salida);
+    } catch (error) {
+        res.status(500).send({ message: "Error al obtener registro de salida" });
     }
 };

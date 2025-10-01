@@ -1,7 +1,7 @@
 const db = require('../models')
 
 exports.crarTipo = async (req, res) => {
-    if (!req.body.nombre) {
+    if (!req.body.nombre || !req.body.claseId) {
         return res.status(400).send({ 
             message: "El contenido no puede estar vacio!" 
         });
@@ -9,6 +9,7 @@ exports.crarTipo = async (req, res) => {
 
     const tipo = {
         nombre: req.body.nombre,
+        claseId: req.body.claseId
     };
     try{
         const nuevoTipo = await  db.tipo.create(tipo);
@@ -22,7 +23,16 @@ exports.crarTipo = async (req, res) => {
 
 exports.traerTipos = async(req, res) => {
     try {
-        const Tipos = await db.tipo.findAll();
+        const {claseId} = req.query;
+        let Tipos;
+
+        if (claseId) {
+            Tipos = await db.tipo.findAll({
+                where: {claseId}
+            });    
+        }else{
+            Tipos = await db.tipo.findAll();
+        }
         res.status(200).send(Tipos);
     } catch (error) {
         res.status(500).send({

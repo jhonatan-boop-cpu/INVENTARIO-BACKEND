@@ -65,7 +65,7 @@ exports.traerComponentes = async (req, res) => {
 exports.editarComponente = async (req, res) => {
     try {
         const id = req.params.id;
-        const {nombre, descripcion, modelo, marca, cantidad, claseId, tipoId} = req.body;
+        const {nombre, descripcion, modelo, marca, cantidad} = req.body;
         const Componente = await db.componente.findByPk(id);
         if (!Componente) {
             return res.status(404).send({
@@ -77,8 +77,6 @@ exports.editarComponente = async (req, res) => {
         Componente.modelo = modelo || Componente.modelo;
         Componente.marca = marca || Componente.marca;
         Componente.cantidad = cantidad || Componente.cantidad;
-        Componente.claseId = claseId || Componente.claseId;
-        Componente.tipoId = tipoId || Componente.tipoId;
         await Componente.save();
         res.status(200).send(Componente);
     } catch (error) {
@@ -110,6 +108,30 @@ exports.eliminarComponente = async (req, res) => {
         });
     }
 };
+
+//traer componente por id 
+exports.obtenerComponente = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const componente = await db.componente.findByPk(id, {
+            attributes: ["nombre", "descripcion", "modelo", "marca", "cantidad", "codigo"],
+            include: [
+                { model: db.clase, as: "clase", attributes: ["nombre"]},
+                { model: db.tipo, as: "tipo", attributes: ["nombre"]}
+            ]
+            });
+
+        if (!componente) {
+        return res.status(404).send({ message: "Componente no encontrado" });
+        }
+        
+
+        res.send(componente);
+    } catch (error) {
+        res.status(500).send({ message: "Error al obtener componente" });
+    }
+};
+
 
 
 

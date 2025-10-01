@@ -36,8 +36,8 @@ db.responsable = require("./responsable.model.js")(sequelize, Sequelize);
 db.auth_tokens.belongsTo(db.usuario, { foreignKey: 'userId', as: 'usuario' });
 db.usuario.hasMany(db.auth_tokens, { foreignKey: 'userId', as: 'token' });
 
-db.clase.hasMany(db.tipo, {as: "tipo", foreignKey: "tipoId"});
-db.tipo.belongsTo(db.clase, {foreignKey: "tipoId",as: "clase",});
+db.clase.hasMany(db.tipo, {as: "tipo", foreignKey: "claseId"});
+db.tipo.belongsTo(db.clase, {foreignKey: "claseId",as: "clase",});
 
 db.clase.hasMany(db.componente, {as: "componente", foreignKey: "claseId"});
 db.componente.belongsTo(db.clase, {foreignKey: "claseId",as: "clase",});
@@ -48,11 +48,11 @@ db.componente.belongsTo(db.tipo, {foreignKey: "tipoId",as: "tipo",});
 db.componente.hasMany(db.movimiento, {as: "movimiento", foreignKey: "componenteId"});    ///
 db.movimiento.belongsTo(db.componente, {foreignKey: "componenteId",as: "componente",});   ///
 
-db.movimiento.hasMany(db.entrada, {as: "entrada", foreignKey: "entradaId"});
-db.entrada.belongsTo(db.movimiento, {foreignKey: "entradaId",as: "movimiento",});    
+db.movimiento.belongsTo(db.entrada, { foreignKey: "entradaId", as: "entrada" });
+db.entrada.hasOne(db.movimiento, { foreignKey: "entradaId", as: "movimiento" });
 
-db.movimiento.hasMany(db.salida, {as: "salida", foreignKey: "salidaId"});
-db.salida.belongsTo(db.movimiento, {foreignKey: "salidaId",as: "movimiento",});
+db.movimiento.belongsTo(db.salida, { foreignKey: "salidaId", as: "salida" });
+db.salida.hasOne(db.movimiento, { foreignKey: "salidaId", as: "movimiento" });
 
 db.responsable.hasMany(db.salida, {as: "salida", foreignKey: "responsableId"});
 db.salida.belongsTo(db.responsable, {foreignKey: "responsableId",as: "responsable",});

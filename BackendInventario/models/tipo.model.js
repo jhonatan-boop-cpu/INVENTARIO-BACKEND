@@ -3,7 +3,10 @@ module.exports = (sequelize, Sequelize) => {
         nombre: {
             type: Sequelize.STRING
         },
-        //falta clase id
+        claseId: {
+            type: Sequelize.INTEGER,
+            allowNull: false
+        }
     });
     return Tipo;
 }

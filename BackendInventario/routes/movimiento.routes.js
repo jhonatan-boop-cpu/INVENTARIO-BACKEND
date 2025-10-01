@@ -13,6 +13,10 @@ router.delete('/salida/:id', movimientoController.eliminarSalida);
 
 router.get('/entrada', movimientoController.traerEntradas);
 router.get('/salida', movimientoController.traerSalidas);//
+
+router.get('/entrada/:id', movimientoController.obtenerEntrada);
+router.get('/salida/:id', movimientoController.obtenerSalida);
+
 //
 
 
