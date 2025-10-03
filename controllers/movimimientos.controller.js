@@ -3,13 +3,13 @@ const db = require('../models')
 //REGISTRAR ENTRADA
 exports.registrarEntrada = async (req, res) =>{
     try{
-        if(!req.body.componenteId || !req.body.nombre || !req.body.cantidad || !req.body.motivo){
+        if(!req.body.componenteId || !req.body.nombre || !req.body.cantidad){
             return res.status(400).send({
-                message: "El contenido no puede estar vacio!"
+                message: "Faltan campos por llenar!"
             });
         }
 
-//buscar componente
+//buscar componente (stock)
         const componente = await db.componente.findByPk(req.body.componenteId);
         if (!componente) {  
             return res.status(404).send({
@@ -54,19 +54,19 @@ exports.registrarEntrada = async (req, res) =>{
 exports.registrarSalida = async (req, res) =>{
     try{
 
-        if(!req.body.componenteId || !req.body.cantidad || !req.body.codigo || !req.body.motivo || !req.body.tipodeorden|| !req.body.responsableId || !req.body.unidadId){
+        if(!req.body.componenteId || !req.body.cantidad || !req.body.codigo || !req.body.tipodeorden|| !req.body.responsableId || !req.body.unidadId){
             return res.status(400).send({
-                message: "El contenido no puede estar vacio!"
+                message: "Faltan campos por llenar!"
             });
         }
 
-//buscar componente
+//buscar componente (stock)
         const componente = await db.componente.findByPk(req.body.componenteId);
         if (!componente) {  
             return res.status(404).send({message: "Componente no encontrado."});
         }
 
-//Validar stock
+//Validar stock     
         if (Number(req.body.cantidad) > componente.cantidad) {
             return res.status(400).send({
                 message: "No hay suficiente stock para realizar la salida."
